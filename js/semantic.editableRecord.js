@@ -40,6 +40,7 @@
     };
 
     function initialize(editableRecord){
+        getRowTemplate(editableRecord);
         appendNewButton(editableRecord);
         appendButtons(editableRecord);
         appendTableHeadForDeleteButton(editableRecord);
@@ -121,8 +122,8 @@
         }
     }
 
-    function makeFieldsEditable(editableRecord, row){
-        var $row = $(row);
+    function makeFieldsEditable(editableRecord){
+        var $row = $(editableRecord.template);
 
         if(!$row.find('td').last().hasClass('action')){
             $row.append('<td class="action"></td>');
@@ -163,8 +164,7 @@
     }
 
     function newButtonClicked(editableRecord){
-        var rowTemplate = getRowTemplate(editableRecord);
-        $(rowTemplate).appendTo(editableRecord);
+        $(editableRecord.template).appendTo(editableRecord);
     }
 
     function saveButtonClicked(editableRecord){
@@ -321,13 +321,13 @@
     }
 
     function getRowTemplate(editableRecord){
-        var rowTemplate = editableRecord.find('tbody tr').first().clone();
-        rowTemplate.attr('id', 'new');
-        rowTemplate.find('td').each(function (i, td) {
-            $(td).empty();
+        var rowTemplate = editableRecord.find('thead tr').clone();
+        rowTemplate.find('th').each(function (i, th) {
+            var $td = $('<td></td>').data('type', $(th).data('type'));
+            $(th).replaceWith($td);
         });
-        makeFieldsEditable(editableRecord, rowTemplate);
-        return rowTemplate;
+        editableRecord.template = rowTemplate;
+        makeFieldsEditable(editableRecord);
     }
 
     function getValidation(editableRecord){
