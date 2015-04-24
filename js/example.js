@@ -1,6 +1,6 @@
 $(function(){
     $('#example1').editableRecord({
-        idName: 'userId',
+        idName: 'Id',
         saveUrl:'./example.json',
         deleteUrl: './example.json'
     });

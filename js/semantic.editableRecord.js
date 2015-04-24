@@ -40,7 +40,6 @@
     };
 
     function initialize(editableRecord){
-        getRowTemplate(editableRecord);
         appendNewButton(editableRecord);
         appendButtons(editableRecord);
         appendTableHeadForDeleteButton(editableRecord);
@@ -51,7 +50,7 @@
 
     function getKeys(editableRecord){
         var keys = [];
-        editableRecord.find('thead tr th').each(function (i, th) {
+        editableRecord.find('thead th').each(function (i, th) {
             var key = $(th).attr('name');
             if(key !== 'action') keys.push(key);
         });
@@ -67,7 +66,9 @@
     function getPostData(editableRecord, keys, row){
         var fields = row.find('td');
         var tmp = {};
-        tmp[editableRecord.idName] = row.attr('id');
+        if(row.attr('id') !== undefined){
+            tmp[editableRecord.idName] = row.attr('id');
+        }
         for(var i = 0; i < keys.length; i++){
             tmp[keys[i]] = $(fields[i]).find('input').val();
         }
@@ -122,8 +123,8 @@
         }
     }
 
-    function makeFieldsEditable(editableRecord){
-        var $row = $(editableRecord.template);
+    function makeFieldsEditable(editableRecord, row){
+        var $row = $(row);
 
         if(!$row.find('td').last().hasClass('action')){
             $row.append('<td class="action"></td>');
@@ -164,7 +165,8 @@
     }
 
     function newButtonClicked(editableRecord){
-        $(editableRecord.template).appendTo(editableRecord);
+        var rowTemplate = getRowTemplate(editableRecord);
+        $(rowTemplate).appendTo(editableRecord);
     }
 
     function saveButtonClicked(editableRecord){
@@ -173,13 +175,12 @@
         editableRecord.find('tbody tr').each(function (i, tr) {
             var $row = $(tr);
             var postData = {};
-            if($row.attr('id') === 'new'){
+            postData = getPostData(editableRecord, keys, $row);
+
+            if(isChanged($row)){
                 postData = getPostData(editableRecord, keys, $row);
-            }else{
-                if(isChanged($row)){
-                    postData = getPostData(editableRecord, keys, $row);
-                }
             }
+
             if(!$.isEmptyObject(postData)){
                 //do validation
                 var result = true;
@@ -273,6 +274,7 @@
                 dataType : 'json',
                 success: function(result){
                     postData.row.removeClass('negative').addClass('positive');
+                    postData.row.find('div.ui.input').removeClass('error');
                     postData.row.attr('id', result[editableRecord.idName]);
                     if(isNew){
                         editableRecord.postCreate(result);
@@ -303,7 +305,7 @@
     }
 
     function isNewRecord(editableRecord, postData){
-        return postData[editableRecord.idName] === 'new';
+        return postData[editableRecord.idName] === undefined;
     }
 
     function isChanged(row){
@@ -324,10 +326,14 @@
         var rowTemplate = editableRecord.find('thead tr').clone();
         rowTemplate.find('th').each(function (i, th) {
             var $td = $('<td></td>').data('type', $(th).data('type'));
-            $(th).replaceWith($td);
+            if($(th).attr('name') == 'action'){
+                $(th).remove();
+            }else{
+                $(th).replaceWith($td);
+            }
         });
-        editableRecord.template = rowTemplate;
-        makeFieldsEditable(editableRecord);
+        makeFieldsEditable(editableRecord, rowTemplate);
+        return rowTemplate;
     }
 
     function getValidation(editableRecord){
