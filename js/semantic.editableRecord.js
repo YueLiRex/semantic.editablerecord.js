@@ -175,8 +175,6 @@
         editableRecord.find('tbody tr').each(function (i, tr) {
             var $row = $(tr);
             var postData = {};
-            postData = getPostData(editableRecord, keys, $row);
-
             if(isChanged($row)){
                 postData = getPostData(editableRecord, keys, $row);
             }
@@ -248,6 +246,9 @@
         $(editableRecord.saveButton).addClass('loading');
         $(editableRecord.cancellButton).addClass('loading');
         $(editableRecord.newButton).addClass('loading');
+        editableRecord.find('tbody tr').each(function (i, tr) {
+            $(tr).removeClass('positive');
+        });
     }
 
     function saveAll(editableRecord, postDatas){
@@ -276,6 +277,9 @@
                     postData.row.removeClass('negative').addClass('positive');
                     postData.row.find('div.ui.input').removeClass('error');
                     postData.row.attr('id', result[editableRecord.idName]);
+                    postData.row.find('td').each(function(idx, td){
+                        $(td).attr('data-value', $(td).find('input').val());
+                    });
                     if(isNew){
                         editableRecord.postCreate(result);
                     }else{
@@ -325,7 +329,7 @@
     function getRowTemplate(editableRecord){
         var rowTemplate = editableRecord.find('thead tr').clone();
         rowTemplate.find('th').each(function (i, th) {
-            var $td = $('<td></td>').data('type', $(th).data('type'));
+            var $td = $('<td></td>').attr('data-type', $(th).data('type')).attr('name', $(th).attr('name'));
             if($(th).attr('name') == 'action'){
                 $(th).remove();
             }else{
@@ -364,7 +368,11 @@
         },
 
         isChanged : function (field){
-            return field.data('value') !== field.find('input').val();
+            return field.attr('data-value') !== field.find('input').val();
+        },
+
+        fieldSaved: function (field){
+
         }
     };
 
