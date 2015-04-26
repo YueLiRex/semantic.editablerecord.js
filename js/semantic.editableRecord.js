@@ -158,7 +158,7 @@
 
         var typePlugin = $.fn.editableRecord.typePlugins[type];
         if(typePlugin === undefined){
-            console.error('No avaliable plugin found for "' + type + '"')
+            console.error('No avaliable plugin found for "' + type + '"');
         }
 
         return typePlugin;
@@ -277,8 +277,10 @@
                     postData.row.removeClass('negative').addClass('positive');
                     postData.row.find('div.ui.input').removeClass('error');
                     postData.row.attr('id', result[editableRecord.idName]);
+                    // todo call fieldSaved to update data-value
                     postData.row.find('td').each(function(idx, td){
-                        $(td).attr('data-value', $(td).find('input').val());
+                        var typePlugin = getDataType(td);
+                        typePlugin.fieldSaved(td);
                     });
                     if(isNew){
                         editableRecord.postCreate(result);
@@ -372,7 +374,8 @@
         },
 
         fieldSaved: function (field){
-
+            var value = $(field).find('input').val();
+            $(field).attr('data-value', value);
         }
     };
 
