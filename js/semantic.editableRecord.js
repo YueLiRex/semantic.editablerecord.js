@@ -291,6 +291,7 @@
                 error: function(result){
                     postData.row.removeClass('positive').addClass('negative');
                     editableRecord.errorHandler(result);
+                    saveComplete(editableRecord);
                 }
             });
             requests.push(request);
