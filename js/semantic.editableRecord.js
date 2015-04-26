@@ -133,7 +133,7 @@
         $row.find('td').each(function(i, td){
             var $field = $(td);
             if(!$field.hasClass('action')) {
-                var typePlugin = getDataType(td);
+                var typePlugin = getTypePlugin(td);
                 var input = typePlugin.makeEditable(td);
                 input.on('change.editableRecord keyup.editableRecord click.editableRecord', function(){
                     if(typePlugin.isChanged($field)){
@@ -150,7 +150,7 @@
         });
     }
 
-    function getDataType(td){
+    function getTypePlugin(td){
         var type = $(td).data('type');
         if(type === undefined){
             type = 'text';
@@ -277,9 +277,8 @@
                     postData.row.removeClass('negative').addClass('positive');
                     postData.row.find('div.ui.input').removeClass('error');
                     postData.row.attr('id', result[editableRecord.idName]);
-                    // todo call fieldSaved to update data-value
                     postData.row.find('td').each(function(idx, td){
-                        var typePlugin = getDataType(td);
+                        var typePlugin = getTypePlugin(td);
                         typePlugin.fieldSaved(td);
                     });
                     if(isNew){
@@ -319,7 +318,7 @@
         row.find('td').each(function(i, td){
             var $field = $(td);
             if(!$field.hasClass('action')){
-                var typePlugin = getDataType(td);
+                var typePlugin = getTypePlugin(td);
                 if(typePlugin.isChanged($field)){
                     result = true;
                 }
