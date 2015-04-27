@@ -355,7 +355,6 @@
     //data types
     $.fn.editableRecord.typePlugins = {};
 
-    //todo: add navtive validation to input
     $.fn.editableRecord.typePlugins.text = {
 
         makeEditable : function (field) {
