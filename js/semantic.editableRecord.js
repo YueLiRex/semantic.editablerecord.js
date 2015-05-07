@@ -71,7 +71,11 @@
             tmp[editableRecord.idName] = row.attr('id');
         }
         for(var i = 0; i < keys.length; i++){
-            tmp[keys[i]] = $(fields[i]).find('input').val();
+            if($(fields[i]).data('type') == 'select'){
+                tmp[keys[i]] = $(fields[i]).find('select').val();
+            }else {
+                tmp[keys[i]] = $(fields[i]).find('input').val();
+            }
         }
         return tmp;
     }
@@ -465,7 +469,6 @@
                 defaultOption = $('<option></option>');
             defaultOption.val(defaultValue);
             defaultOption.text(defaultLable);
-            console.log(defaultOption.text());
             inputField.append(defaultOption);
 
             $.each(options, function(idx, elem){
@@ -476,11 +479,12 @@
                 inputField.append(option);
             });
 
-            inputField.dropdown({});
+            inputField.dropdown();
             return inputField;
         },
 
         isChanged: function(field) {
+            console.log(field.data('value') !== field.find('select').val());
             return field.data('value') !== field.find('select').val();
         }
     })
