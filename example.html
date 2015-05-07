@@ -13,6 +13,7 @@
         <th name="name" data-notnull="true">Name</th>
         <th data-type="date" name="registrationDate">Registration Date</th>
         <th data-type="email" name="email" data-notnull="true">E-mail address</th>
+        <th data-type="select" name="gender" data-defaultvalue="" data-defaultlable="Gender" data-options='getGender'>Gender</th>
         <th data-type="checkbox" name="plan" data-checked="Yes" data-unchecked="No">Premium Plan</th>
     </tr>
     </thead>
@@ -25,5 +26,10 @@
     <script src="js/semantic.min.js"></script>
     <script src="js/semantic.editableRecord.js"></script>
     <script src="js/example.js"></script>
+<script>
+    function getGender(){
+        return [{value:"f", text:"female"}, {value:"m", text:"male"}];
+    }
+</script>
 </body>
 </html>

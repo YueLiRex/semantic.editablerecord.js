@@ -1,5 +1,6 @@
 (function($) {
 
+    //add batch operation
     $.fn.editableRecord = function( options ) {
         var $this = $.extend(this, defaultSetting, options);
 
@@ -331,7 +332,11 @@
     function getRowTemplate(editableRecord){
         var rowTemplate = editableRecord.find('thead tr').clone();
         rowTemplate.find('th').each(function (i, th) {
-            var $td = $('<td></td>').attr('data-type', $(th).data('type')).attr('name', $(th).attr('name'));
+            var $td = $('<td></td>');
+            $.each($(th).data(), function(key, value){
+                $td.attr('data-'+key, value);
+            });
+
             if($(th).attr('name') == 'action'){
                 $(th).remove();
             }else{
@@ -444,5 +449,40 @@
             return field.data('value') !== field.find('input').val();
         }
     });
+
+    $.fn.editableRecord.typePlugins.select = $.extend({}, $.fn.editableRecord.typePlugins.text, {
+        makeEditable: function (field) {
+            var $field = $(field),
+                value = $field.text(),
+                defaultValue = $field.data('defaultvalue'),
+                defaultLable = $field.data('defaultlable'),
+                optionsFunction = $field.data('options');
+
+            var options = window[optionsFunction]();
+
+            $field.attr('data-value', value);
+            var inputField = $('<select class="ui dropdown"></select>'),
+                defaultOption = $('<option></option>');
+            defaultOption.val(defaultValue);
+            defaultOption.text(defaultLable);
+            console.log(defaultOption.text());
+            inputField.append(defaultOption);
+
+            $.each(options, function(idx, elem){
+
+                var option = $('<option></option>');
+                option.val(elem.value);
+                option.text(elem.text);
+                inputField.append(option);
+            });
+
+            inputField.dropdown({});
+            return inputField;
+        },
+
+        isChanged: function(field) {
+            return field.data('value') !== field.find('select').val();
+        }
+    })
 
 }(jQuery));
