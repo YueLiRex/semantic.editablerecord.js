@@ -155,20 +155,6 @@
         });
     }
 
-    function getTypePlugin(td){
-        var type = $(td).data('type');
-        if(type === undefined){
-            type = 'text';
-        }
-
-        var typePlugin = $.fn.editableRecord.typePlugins[type];
-        if(typePlugin === undefined){
-            console.error('No avaliable plugin found for "' + type + '"');
-        }
-
-        return typePlugin;
-    }
-
     function newButtonClicked(editableRecord){
         var rowTemplate = getRowTemplate(editableRecord);
         $(rowTemplate).appendTo(editableRecord);
@@ -180,31 +166,12 @@
         editableRecord.find('tbody tr').each(function (i, tr) {
             var $row = $(tr);
             var postData = {};
-            if(isChanged($row)){
-                postData = getPostData(editableRecord, keys, $row);
-            }
 
-            if(!$.isEmptyObject(postData)){
-                //do validation
-                var result = true;
-                $.each(editableRecord.validation, function (key, condition) {
-                    $.each(condition, function(k, v) {
-                        if (v === true) {
-                            switch (k) {
-                                case 'notnull':
-                                    if(postData[key] === '' || postData[key] === null || postData[key] === undefined){
-                                        result = false;
-                                    }
-                                    break;
-                                default :
-                                    break;
-                            }
-                        }
-                    });
-                });
-                if(result){
+            if(isChanged($row)){
+                if(doValidate(editableRecord, $row)){
+                    postData = getPostData(editableRecord, keys, $row);
                     postDatas.push({data:postData, row: $row});
-                }else{
+                }else {
                     $row.addClass('negative');
                     $row.find('div.ui.input').addClass('error');
                 }
@@ -351,14 +318,49 @@
         return rowTemplate;
     }
 
+    function getTypePlugin(td){
+        var type = $(td).data('type');
+        if(type === undefined){
+            type = 'text';
+        }
+
+        var typePlugin = $.fn.editableRecord.typePlugins[type];
+        if(typePlugin === undefined){
+            console.error('No avaliable plugin found for "' + type + '"');
+        }
+
+        return typePlugin;
+    }
+
     function getValidation(editableRecord){
         editableRecord.validation = {};
         editableRecord.find('thead th').each(function(i, th){
             var $th = $(th), keyName = $th.attr('name');
             if($th.attr('name') !== 'action') {
-                editableRecord.validation[keyName] = $th.data();
+                var validation = $th.data('validation');
+                if(validation != undefined) {
+                    validation = validation.split(',');
+                    editableRecord.validation[keyName] = validation;
+                }
             }
         });
+    }
+
+    function doValidate(editableRecord, row){
+        var result = true;
+        var keys = getKeys(editableRecord);
+        $(row).find('td').each(function(idx, td){
+            if (!$(td).hasClass('action')){
+                var typePlugin = getTypePlugin(td);
+                var name = keys[idx];
+                if(editableRecord.validation.hasOwnProperty(name)){
+                    result = result && typePlugin.validate(editableRecord.validation[name], td);
+                }else {
+                    result = result && true;
+                }
+            }
+        });
+        return result;
     }
 
     //data types
@@ -384,6 +386,22 @@
         fieldSaved: function (field){
             var value = $(field).find('input').val();
             $(field).attr('data-value', value);
+        },
+
+        validate: function (conditions, field) {
+            var result = true;
+            $.each(conditions, function(idx, condition){
+                switch (condition) {
+                    case 'notnull' :
+                        var $input = $(field).find('input');
+                        result = $input.val() != '';
+                        break;
+                    default :
+                        result = false;
+                        break;
+                }
+            });
+            return result;
         }
     };
 
@@ -484,8 +502,23 @@
         },
 
         isChanged: function(field) {
-            console.log(field.data('value') !== field.find('select').val());
             return field.data('value') !== field.find('select').val();
+        },
+
+        validate: function (conditions, field) {
+            var result = true;
+            $.each(conditions, function(idx, condition){
+                switch (condition) {
+                    case 'notnull' :
+                        var $input = $(field).find('select');
+                        result = $input.val() != '';
+                        break;
+                    default :
+                        result = false;
+                        break;
+                }
+            });
+            return result;
         }
     })
 
