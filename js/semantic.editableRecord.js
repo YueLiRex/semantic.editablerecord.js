@@ -13,12 +13,14 @@
         //attributes
         idName: null,
         multiple: true,
+        addable: true,
 
         //buttons
         saveButton: '<div name="save" class="ui primary button">Save</div>',
         cancellButton: '<div name="cancel" class="ui button">Cancel</div>',
         newButton: '<div class="ui positive button">New</div>',
         deleteButton: '<div class="ui icon button"><i class="trash icon"></i></div>',
+        detailButton: '<div class="ui icon button"><i class="unordered list icon"></i></div>',
         orButton: '<div class="or"></div>',
         buttonGroup: '<div class="ui buttons"></div>',
 
@@ -37,11 +39,14 @@
         postUpdate: jQuery.noop,
         postSave: jQuery.noop,
         postDelete: jQuery.noop,
+        detailButtonClicked: jQuery.noop,
         errorHandler: jQuery.noop
     };
 
     function initialize(editableRecord){
-        appendNewButton(editableRecord);
+        if(editableRecord.addable){
+            appendNewButton(editableRecord);
+        }
         appendButtons(editableRecord);
         appendTableHeadForDeleteButton(editableRecord);
         initButtons(editableRecord);
@@ -60,12 +65,19 @@
 
     function makeTableEditable(editableRecord){
         editableRecord.find('tbody tr').each(function (i, tr) {
-            makeFieldsEditable(editableRecord, tr);
+            if($(tr).attr('name') !== undefined){
+                makeFieldsEditable(editableRecord, tr);
+            }
         });
     }
 
     function getPostData(editableRecord, keys, row){
-        var fields = row.find('td');
+        var fields = [];
+        row.find('td').each(function(idx, td){
+            if($(td).attr('name') !== undefined){
+                fields.push(td);
+            }
+        });
         var tmp = {};
         if(row.attr('id') !== undefined){
             tmp[editableRecord.idName] = row.attr('id');
@@ -148,6 +160,12 @@
                 $field.empty();
                 $field.append(input);
             }else{
+                $(editableRecord.detailButton).appendTo($field).on('click.editableRecord', function () {
+                    if($(this).closest('tr').attr('id') == undefined){
+                        return
+                    }
+                    editableRecord.detailButtonClicked();
+                });
                 $(editableRecord.deleteButton).appendTo($field).on('click.editableRecord', function () {
                     deleteButtonClicked(editableRecord, $row);
                 });
