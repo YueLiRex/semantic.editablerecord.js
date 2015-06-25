@@ -5,6 +5,8 @@ Semantic.editableRecord
 
 ####by : yue.li@lunatech.com
 
+####Version: v0.5
+
 ###Description
 JQuery data table plugin based on semantic UI.
 
