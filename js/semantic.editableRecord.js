@@ -23,6 +23,7 @@
         detailButton: '<div class="ui icon button"><i class="unordered list icon"></i></div>',
         orButton: '<div class="or"></div>',
         buttonGroup: '<div class="ui buttons"></div>',
+        saveButtonLocation: '',
 
         //urls
         createUrl: null,
@@ -65,19 +66,12 @@
 
     function makeTableEditable(editableRecord){
         editableRecord.find('tbody tr').each(function (i, tr) {
-            if($(tr).attr('name') !== undefined){
-                makeFieldsEditable(editableRecord, tr);
-            }
+            makeFieldsEditable(editableRecord, tr);
         });
     }
 
     function getPostData(editableRecord, keys, row){
-        var fields = [];
-        row.find('td').each(function(idx, td){
-            if($(td).attr('name') !== undefined){
-                fields.push(td);
-            }
-        });
+        var fields = row.find('td');
         var tmp = {};
         if(row.attr('id') !== undefined){
             tmp[editableRecord.idName] = row.attr('id');
@@ -161,10 +155,8 @@
                 $field.append(input);
             }else{
                 $(editableRecord.detailButton).appendTo($field).on('click.editableRecord', function () {
-                    if($(this).closest('tr').attr('id') == undefined){
-                        return
-                    }
-                    editableRecord.detailButtonClicked();
+                    if($(this).closest('tr').attr('id') === undefined) return;
+                    editableRecord.detailButtonClicked($(this).closest('tr'));
                 });
                 $(editableRecord.deleteButton).appendTo($field).on('click.editableRecord', function () {
                     deleteButtonClicked(editableRecord, $row);
@@ -216,20 +208,24 @@
     }
 
     function deleteButtonClicked(editableRecord, row){
-        var postData = {};
-        postData[editableRecord.idName] = row.attr('id');
-        editableRecord.preDelete(row);
-        $.ajax({
-            url: editableRecord.deleteUrl,
-            type: 'POST',
-            data: postData,
-            cache: false,
-            dataType: 'json',
-            success: function(result){
-                row.remove();
-                editableRecord.postDelete(result);
-            }
-        });
+        if($(row).attr('id') == undefined){
+            $(row).remove();
+        }else{
+            var postData = {};
+            postData[editableRecord.idName] = row.attr('id');
+            editableRecord.preDelete(row);
+            $.ajax({
+                url: editableRecord.deleteUrl,
+                type: 'POST',
+                data: postData,
+                cache: false,
+                dataType: 'json',
+                success: function(result){
+                    row.remove();
+                    editableRecord.postDelete(result);
+                }
+            });
+        }
     }
 
     function saving(editableRecord){
@@ -490,6 +486,20 @@
         }
     });
 
+    $.fn.editableRecord.typePlugins.color = $.extend({}, $.fn.editableRecord.typePlugins.text,{
+        makeEditable : function (field) {
+            var $field = $(field),
+                value = $field.text();
+
+            $field.attr('data-value', value);
+            var inputWrapper = $('<div class="ui fluid transparent input"></div>');
+            var inputField = inputWrapper.append($('<input type="color" />').val(value));
+
+            return inputField
+        }
+    });
+
+    //todo load value from text
     $.fn.editableRecord.typePlugins.select = $.extend({}, $.fn.editableRecord.typePlugins.text, {
         makeEditable: function (field) {
             var $field = $(field),
@@ -512,6 +522,9 @@
                 var option = $('<option></option>');
                 option.val(elem.value);
                 option.text(elem.text);
+                if(elem.value === value){
+                    option.attr('selected', true);
+                }
                 inputField.append(option);
             });
 
